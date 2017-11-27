@@ -1,0 +1,42 @@
+wget ftp://ftp-trace.ncbi.nih.gov/sra/sra-instant/reads/ByRun/sra/SRR/SRR169/SRR1694055/SRR1694055.sra
+
+grep 'SRR1919002\|SRR1918994\|SRR1918864' SraRunTable.txt >SraTable.txt grep lines from TEXT file with information you need. better to use R script to grab the column names
+
+
+nohup fastq-dump --split-files SRR1694055.sra &
+
+# will split to two file in case we have pair-ends in our case we have only single reads
+
+nohup fastq-dump SRR1694055.sra &
+
+head SRR1694055.fastq
+
+to align the srrxxx.fastq gile to the reference genome we need to create index from http://useast.ensembl.org/Mus_musculus/Info/Index 
+
+Download genes, cDNAs, ncRNA, proteins (FASTA) and download from directory cdna file Mus_musculus.GRCm38.cdna.all.fa.gz
+
+unzip the file and built index using bowtie2
+bowtie2-build Mus_musculus.GRCm38.cdna.all.fasta mus/mus
+
+very important if you change the name to mus you should also change the name of fasta file  to mus.fa and keep it in the same directory with index files. 
+
+Transfer the fastq files to the same directory or use ABSOLUTE PATH to the files to align the fastq file(s)
+bowtie2 -p 4 -x mus -U SRR1694055.fastq -S RAW.bt2.sam
+ -U option for single reads 
+
+samtools mpileup -v -u -f mus.fa raw.bt2_s.bam>raw.vcf #create vcf file from SORTED bam 
+
+file
+
+samtools mpileup -g -f mus.fa raw.bt2_s.bam>raw.bcf # create bcf file from SORTED bam file
+
+download  htslib and bcftools to directory Vitaly from http://www.htslib.org/download/
+
+then cd to Vitaly/bcftools and make
+
+create PATH to executable files using next comand
+
+Vitalys-iMac:bcftools Vitaly$ export PATH=/Users/Vitaly/bcftools:$PATH
+
+using vi I edit ~?.bash_profile by inserting next line export PATH="/Users/Vitaly/bcftools:$PATH"
+restart terminal and now bcftools work by default::
